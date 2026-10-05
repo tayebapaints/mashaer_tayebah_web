@@ -77,36 +77,53 @@ class Content {
   static const priceOnRequest = L('السعر عند الطلب', 'Price on request');
 
   static const products = [
+
     Product(
-      image: 'assets/images/products/interior-paint.jpg',
-      name: L('دهان داخلي فاخر', 'Premium Interior Paint'),
-      description: L('تغطية ناعمة وألوان ثابتة لغرف المعيشة والنوم.', 'Smooth coverage and long-lasting colour for living rooms and bedrooms.'),
+      image: 'assets/images/products/roof-coating-555.jpeg',
+      name: L('555 دهانات - مادة عازلة للأسطح', '555 Roof Coating - Insulating Material'),
+      description: L(
+        'عازل مائي ممتاز يحمي من الشمس والحرارة، مرن ويلتصق بقوة على جميع الأسطح.',
+        'Premium waterproof coating with UV protection. Flexible, strongly adhesive and weather resistant.',
+      ),
     ),
     Product(
-      image: 'assets/images/products/exterior-paint.jpg',
-      name: L('دهان خارجي مقاوم للعوامل الجوية', 'Weather-Shield Exterior Paint'),
-      description: L('حماية طويلة الأمد من الشمس والرطوبة للواجهات.', 'Long-term protection from sun and moisture for building facades.'),
+      image: 'assets/images/products/white-plastic-interior-555.jpeg',
+      name: L('555 دهانات - بلاستيك أبيض ناصع', '555 Brilliant White Plastic Paint'),
+      description: L(
+        'بياض فائق وتغطية عالية وحماية تدوم، سهل التنظيف ومثالي للأسطح الداخلية.',
+        'Brilliant white with high coverage and lasting protection. Easy to clean and ideal for interior surfaces.',
+      ),
     ),
     Product(
-      image: 'assets/images/products/enamel-paint.jpg',
-      name: L('دهان لميع للأخشاب والمعادن', 'Enamel Paint for Wood & Metal'),
-      description: L('لمعان قوي وتشطيب أملس للأبواب والنوافذ والحديد.', 'A strong gloss finish for doors, windows and ironwork.'),
+      image: 'assets/images/products/water-based-white-555.jpeg',
+      name: L('555 دهانات - بلاستيك مائي أبيض ناصع', '555 Water-Based White Plastic Paint'),
+      description: L(
+        'بلاستيك مائي أبيض ناصع للجدران الداخلية والخارجية، صنع في المملكة العربية السعودية.',
+        'Brilliant white water-based plastic paint for interior and exterior walls. Made in Saudi Arabia.',
+      ),
     ),
-    Product(
-      image: 'assets/images/products/roof-coating.jpg',
-      name: L('عازل حراري ومائي للأسطح', 'Roof Thermal & Waterproof Coating'),
-      description: L('يقلل الحرارة الداخلية ويمنع تسرب المياه في الأسطح.', 'Reduces indoor heat and prevents water leaks on rooftops.'),
-    ),
-    Product(
-      image: 'assets/images/products/wallpaper.jpg',
-      name: L('ورق جدران وبانوهات ثلاثية الأبعاد', 'Wallpaper & 3D Panels'),
-      description: L('تصاميم عصرية لإضافة لمسة ديكور مميزة.', 'Modern designs that add a distinctive decorative touch.'),
-    ),
-    Product(
-      image: 'assets/images/products/texture-finish.jpg',
-      name: L('تشطيب تكستشر وديكورات جدارية', 'Texture Finish & Wall Decor'),
-      description: L('تشطيبات فنية بارزة تعطي عمقاً وملمساً للجدران.', 'Artistic raised finishes that give walls depth and texture.'),
-    ),
+
+
+    // Product(
+    //   image: 'assets/images/products/enamel-paint.jpg',
+    //   name: L('دهان لميع للأخشاب والمعادن', 'Enamel Paint for Wood & Metal'),
+    //   description: L('لمعان قوي وتشطيب أملس للأبواب والنوافذ والحديد.', 'A strong gloss finish for doors, windows and ironwork.'),
+    // ),
+    // Product(
+    //   image: 'assets/images/products/roof-coating.jpg',
+    //   name: L('عازل حراري ومائي للأسطح', 'Roof Thermal & Waterproof Coating'),
+    //   description: L('يقلل الحرارة الداخلية ويمنع تسرب المياه في الأسطح.', 'Reduces indoor heat and prevents water leaks on rooftops.'),
+    // ),
+    // Product(
+    //   image: 'assets/images/products/wallpaper.jpg',
+    //   name: L('ورق جدران وبانوهات ثلاثية الأبعاد', 'Wallpaper & 3D Panels'),
+    //   description: L('تصاميم عصرية لإضافة لمسة ديكور مميزة.', 'Modern designs that add a distinctive decorative touch.'),
+    // ),
+    // Product(
+    //   image: 'assets/images/products/texture-finish.jpg',
+    //   name: L('تشطيب تكستشر وديكورات جدارية', 'Texture Finish & Wall Decor'),
+    //   description: L('تشطيبات فنية بارزة تعطي عمقاً وملمساً للجدران.', 'Artistic raised finishes that give walls depth and texture.'),
+    // ),
   ];
 
   // Feature

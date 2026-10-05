@@ -1,21 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import '../content.dart';
 import '../theme.dart';
 import 'common.dart';
 
-/// All gallery image paths in one place.
-/// Files: assets/images/work/a.jpg ... z.jpg, aa.jpg, ab.jpg, ac.jpg
+/// Finds the gallery images that REALLY exist by reading Flutter's asset
+/// manifest, instead of guessing file names and extensions.
+///
+/// Requirement: `assets/images/work/` must be declared in pubspec.yaml:
+///
+/// flutter:
+///   assets:
+///     - assets/images/work/
 class GalleryImages {
   GalleryImages._();
 
-  static const String _basePath = 'assets/images/work';
+  static const String _folder = 'assets/images/work/';
+  static const List<String> _extensions = ['.jpg', '.jpeg', '.png', '.webp'];
 
-  static final List<String> all = [
-    ...'abcdefghijklmnopqrstuvwxyz'.split(''),
-    'aa',
-    'ab',
-    'ac',
-  ].map((name) => '$_basePath/$name.jpg').toList();
+  static Future<List<String>> load() async {
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+
+    final paths = manifest.listAssets().where((path) {
+      final lower = path.toLowerCase();
+      return lower.startsWith(_folder) && _extensions.any(lower.endsWith);
+    }).toList();
+
+    // a, b, ... z, aa, ab, ac (shorter names first, then alphabetical).
+    paths.sort((x, y) {
+      final nameX = _baseName(x);
+      final nameY = _baseName(y);
+      final byLength = nameX.length.compareTo(nameY.length);
+      return byLength != 0 ? byLength : nameX.compareTo(nameY);
+    });
+
+    return paths;
+  }
+
+  static String _baseName(String path) =>
+      path.split('/').last.split('.').first;
 }
 
 class GallerySection extends StatefulWidget {
@@ -27,11 +51,20 @@ class GallerySection extends StatefulWidget {
 }
 
 class _GallerySectionState extends State<GallerySection> {
-  // Showing everything at once loads 29 photos on first paint; start with a
-  // page of them and let the visitor ask for more.
+  // Start with one page of photos and let the visitor ask for more.
   static const int _initialCount = 12;
 
+  // Created once. Creating it inside build() would reload the manifest
+  // on every rebuild (for example when "Show more" is tapped).
+  late final Future<List<String>> _imagesFuture;
+
   bool _expanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _imagesFuture = GalleryImages.load();
+  }
 
   void _openViewer(String path) {
     showDialog<void>(
@@ -49,6 +82,7 @@ class _GallerySectionState extends State<GallerySection> {
               top: 4,
               right: 4,
               child: IconButton(
+                tooltip: 'Close',
                 icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () => Navigator.of(dialogContext).pop(),
               ),
@@ -67,52 +101,67 @@ class _GallerySectionState extends State<GallerySection> {
         ? 4
         : (width > Breakpoints.mobile ? 3 : 2);
 
-    final all = GalleryImages.all;
-    final visible = _expanded ? all : all.take(_initialCount).toList();
+    return FutureBuilder<List<String>>(
+      future: _imagesFuture,
+      builder: (context, snapshot) {
+        final isLoading = snapshot.connectionState != ConnectionState.done;
+        final all = snapshot.data ?? const <String>[];
 
-    return Container(
-      color: AppColors.cream2,
-      padding: const EdgeInsets.symmetric(vertical: 80),
-      child: SiteContainer(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SectionHeading(
-              kicker: Content.galleryKicker.of(isArabic),
-              title: Content.galleryTitle.of(isArabic),
-            ),
-            const SizedBox(height: 32),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: visible.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: cols,
-                crossAxisSpacing: 14,
-                mainAxisSpacing: 14,
-                // The photos are portrait, so portrait tiles crop them far less
-                // than the old square tiles did.
-                childAspectRatio: 0.75,
-              ),
-              itemBuilder: (context, i) => _GalleryTile(
-                path: visible[i],
-                onTap: () => _openViewer(visible[i]),
-              ),
-            ),
-            if (!_expanded && all.length > _initialCount) ...[
-              const SizedBox(height: 32),
-              Center(
-                child: OutlineButton(
-                  label: Content.galleryMore.of(isArabic),
-                  borderColor: AppColors.goldDark,
-                  textColor: AppColors.ink,
-                  onTap: () => setState(() => _expanded = true),
+        // Finished loading but there are no images: hide the whole section.
+        if (!isLoading && all.isEmpty) return const SizedBox.shrink();
+
+        final visible = _expanded ? all : all.take(_initialCount).toList();
+
+        return Container(
+          color: AppColors.cream2,
+          padding: const EdgeInsets.symmetric(vertical: 80),
+          child: SiteContainer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SectionHeading(
+                  kicker: Content.galleryKicker.of(isArabic),
+                  title: Content.galleryTitle.of(isArabic),
                 ),
-              ),
-            ],
-          ],
-        ),
-      ),
+                const SizedBox(height: 32),
+                if (isLoading)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 60),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: visible.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: cols,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      // The photos are portrait, so portrait tiles crop less.
+                      childAspectRatio: 0.75,
+                    ),
+                    itemBuilder: (context, i) => _GalleryTile(
+                      path: visible[i],
+                      onTap: () => _openViewer(visible[i]),
+                    ),
+                  ),
+                if (!isLoading && !_expanded && all.length > _initialCount) ...[
+                  const SizedBox(height: 32),
+                  Center(
+                    child: OutlineButton(
+                      label: Content.galleryMore.of(isArabic),
+                      borderColor: AppColors.goldDark,
+                      textColor: AppColors.ink,
+                      onTap: () => setState(() => _expanded = true),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -120,33 +169,39 @@ class _GallerySectionState extends State<GallerySection> {
 class _GalleryTile extends StatelessWidget {
   final String path;
   final VoidCallback onTap;
-  const _GalleryTile({required this.path, required this.onTap});
+
+  const _GalleryTile({
+    required this.path,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(
-            path,
-            fit: BoxFit.cover,
-            cacheWidth: 600,
-            errorBuilder: (_, __, ___) => Container(
-              color: AppColors.line,
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.broken_image_outlined,
-                color: AppColors.muted,
+    return Semantics(
+      button: true,
+      label: 'Open photo',
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              path,
+              fit: BoxFit.cover,
+              cacheWidth: 600,
+              // Safety net only. Paths now come from the asset manifest,
+              // so this should rarely run.
+              errorBuilder: (_, __, ___) => const ColoredBox(
+                color: Color(0x11000000),
+                child: Icon(Icons.broken_image_outlined),
               ),
             ),
-          ),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(onTap: onTap),
-          ),
-        ],
+            Material(
+              color: Colors.transparent,
+              child: InkWell(onTap: onTap),
+            ),
+          ],
+        ),
       ),
     );
   }
